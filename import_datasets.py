@@ -9,6 +9,13 @@ Import the datasets listed in datasets.yaml.
 An entry is up to date when data/<dataset_id>/ was imported from the same task ID and
 workflow with the current import code (it has every analysis). A failed import leaves
 the previous version of that dataset in place.
+
+Datasets imported before the abundance matrix moved to abundance.npz are converted in
+place (no re-download) the first time this runs.
+
+Datasets can also be added through the API (POST /datasets/import or /datasets/upload,
+signed in as an uploader). Those are not listed here; dataset IDs listed here are
+managed only from this file.
 """
 from __future__ import annotations
 
@@ -21,7 +28,7 @@ from pathlib import Path
 
 import yaml
 
-from importer import DATA_DIR, WORKFLOW_FILES, import_task
+from importer import DATA_DIR, WORKFLOW_FILES, import_task, upgrade_abundance
 
 CONFIG = Path(__file__).parent / "datasets.yaml"
 ANALYSES = ["van-krevelen", "carbon-oxidation", "boxplot", "pcoa"]
@@ -68,6 +75,11 @@ def main() -> int:
     ap.add_argument("--list", action="store_true", help="show the datasets and whether they are imported")
     args = ap.parse_args()
 
+    for folder in sorted(p.parent for p in DATA_DIR.glob("*/info.json") if not p.parent.name.startswith(".")):
+        t0 = time.time()
+        if upgrade_abundance(folder):
+            print(f"{folder.name}: converted abundance to abundance.npz in {time.time() - t0:.0f}s", flush=True)
+
     entries = load_config()
     if args.dataset_ids:
         unknown = set(args.dataset_ids) - {e["dataset_id"] for e in entries}
@@ -97,15 +109,13 @@ def main() -> int:
         print(f"{name}: importing GNPS2 task {e['task_id']} ({e['workflow']})", flush=True)
         t0 = time.time()
         try:
-            info = import_task(name, e["task_id"], e["workflow"],
+            extra = {"description": str(e["description"])} if e.get("description") else {}
+            info = import_task(name, e["task_id"], e["workflow"], extra={**extra, "managed_by": "datasets.yaml"},
                                progress=lambda step: print(f"  {time.time() - t0:6.0f}s  {step}", flush=True))
         except Exception as exc:
             print(f"{name}: FAILED: {exc}", flush=True)
             failed.append(name)
             continue
-        if e.get("description"):
-            info["description"] = str(e["description"])
-            (DATA_DIR / name / "info.json").write_text(json.dumps(info, indent=2))
         print(f"{name}: done in {time.time() - t0:.0f}s: {info['n_features']:,} features, {info['n_samples']:,} samples, "
               f"{info['n_with_formula']:,} with a formula" + (f"; warnings: {'; '.join(info['warnings'])}" if info["warnings"] else ""),
               flush=True)
