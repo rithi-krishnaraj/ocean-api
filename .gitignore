@@ -1,0 +1,10 @@
+# Imported datasets (hundreds of MB; rebuilt on the server with `make import`)
+data/
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Local secrets, if any are ever added
+.env

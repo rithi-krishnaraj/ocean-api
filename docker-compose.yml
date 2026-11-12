@@ -1,0 +1,15 @@
+# Base service. Combine with docker-compose-dev.yml (local) or
+# docker-compose-production.yml (ocean-metabolome-portal.gnps2.org); see the Makefile.
+services:
+  ocean-portal:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ocean-portal
+    volumes:
+      - ./data:/app/data:rw
+      # mounted, so adding a dataset needs no rebuild: edit it, then `make import`
+      - ./datasets.yaml:/app/datasets.yaml:ro
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped

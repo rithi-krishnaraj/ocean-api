@@ -1,0 +1,16 @@
+# Production on GNPS2's servers: https://ocean-metabolome-portal.gnps2.org
+services:
+  ocean-portal:
+    environment:
+      - VIRTUAL_HOST=ocean-metabolome-portal.gnps2.org
+      - VIRTUAL_PORT=8001
+      - LETSENCRYPT_HOST=ocean-metabolome-portal.gnps2.org
+      - LETSENCRYPT_EMAIL=mwang87@gmail.com
+    networks:
+      - default
+      - nginx-net
+
+networks:
+  nginx-net:
+    external: true
+    name: nginx-net

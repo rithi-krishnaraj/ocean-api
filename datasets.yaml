@@ -1,0 +1,20 @@
+# Datasets served by the Ocean Metabolome API.
+#
+# To add one: add an entry, then on the server run `make import`
+# (or `python import_datasets.py` outside Docker). Only new or changed entries are
+# imported; the running API picks them up on its next request.
+#
+#   dataset_id  name used in the API URLs (letters, digits, _ and -)
+#   task_id     GNPS2 task ID
+#   workflow    fbmn (Feature-Based Molecular Networking) or eb (Everything Bagel)
+#   description optional, shown in GET /datasets
+
+- dataset_id: ocean_fbmn
+  task_id: 454547be77d94ae1ad00d798046ee7a0
+  workflow: fbmn
+  description: Ocean Dataset (FBMN)
+
+- dataset_id: go_dom_eb
+  task_id: b5202688ec2c41248aea5dcc341870c2
+  workflow: eb
+  description: GO-DOM / Minderoo (Everything Bagel)

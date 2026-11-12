@@ -1,0 +1,5 @@
+# Local development: http://localhost:8001
+services:
+  ocean-portal:
+    ports:
+      - "8001:8001"
